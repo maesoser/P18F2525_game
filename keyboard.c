@@ -37,37 +37,6 @@ const rom unsigned char keyboard[4][4] = {{1,2,3,12},
 									     {10,0,11,15}};
 
 
-/********************* PINOUT **************************************/
-/*
-		|1 MCLR	PGC 28|	->		       	A1 |1 B   16| 5V
- BCD 	|2 A0	PGD 27|	->			    A2 |2 C	  15| F			G F X A B
- BCD	|3 A1	 B5 26|			       	   |3	  14| G			|		|	
- BCD	|4 A2	 B4 25|	       			   |4	  13| A			|		|
- BCD	|5 A3	 B3 24|	Col3			   |5 RBI 12| B			|		|
-		|6 A4	 B2 23| Col2			A3 |6 D	  11| C   		E D X C 0
-		|7 A5	 B1 22| Col1			A0 |7 A	  10| D
-		|8 GND	 B0 21| Col0		    GND|8 GND  9| E			* 0 means BD			
-OSC		|9 		 5V 20|	5v										* X means GND
-OSC		|10		    19| GND
-Row0	|11 C0	 RX 18|
-Row1	|12 C1	 TX 17|
-Row2	|13 C2	 C5 16|
-Row3	|14 C3	 C4 15|
-*/
-
-/* REMEMBER!!
-Z & 1100 = XX00
-Z | 1100 = 11XX
-*/
-
-/* 
- TRISA -> BCD
- TRISC = ROWS
- TRISB = COLUMNS
-
-	C1-C2-C3-C4-R1-R2-R3-R4
-	21-22-23-24-11-12-13-14
-*/
 void main()
 {   
     ADCON1 = 0x0F; // 00001111 Make all pins digital in PORTA and PORTB. 
