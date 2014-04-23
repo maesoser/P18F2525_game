@@ -1,0 +1,12 @@
+Step 3: Complete game without sounds.
+The idea of the third step is to implement the full system without including the sound reproduction function. The generation of the random sequences, the visualization of them and the interpretation of the pressed keys are the base of the program to be completed in this session.
+The game will have an start mode to be determined by the programmer (pressing a key, after a few seconds, after playing some initial music, etc), after this, a first random value will be shown for the player to replicate in a short time span (<10 seconds) between key strokes. After the player presses the key a new increased sequence will be shown if the pressed key is correct, or will show an error visualization sequence for the case the pressed key is incorrect or the player took a long time to press the key.
+
+
+Previous work: At the beginning of the lab session all the students will deliver a memory including the following:
+o Flux diagram of the complete game where each routine shall be clearly specified according to its function.
+o Description of the initial mode of the game, and also the process to show the player he/she has failed when introducing the sequence.
+
+Laboratory work: During the lab session you will have to meet the following objectives:
+o Consolidate the full game, verifying the debouncing function of the keyboard and taking into account the time between the multiple actions of the game.
+o Use the debug environment of the MPLAB software in order to correct any errors in your program.
