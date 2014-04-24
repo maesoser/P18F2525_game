@@ -1,4 +1,3 @@
-
 #include "main.h"
  
 #pragma code
@@ -22,16 +21,16 @@ unsigned char pos;
 void main(void){
 	
 	setup();
-	
+		
 	pos=0;
 	error = 0;
 	//showSequence(MAX_SEQ);
 	while(TRUE){
 		if(pos == MAX_SEQ ) win(); // Si ha alcanzado el numero de la serie -> WIN
-		if(error > 3) lose();		// Si ha alcanzado el numero de fallos -> LOSE
+		if(error > MAX_ERROR) lose();		// Si ha alcanzado el numero de fallos -> LOSE
 		else{		// Si no, sigue jugando
 			showSequence(pos);
-			error = checkSequence(pos);
+			error = error + checkSequence(pos);
 		}
 		pos++;
  	
@@ -145,12 +144,11 @@ unsigned char KeyDebounced(){
 
 //Generates a Random number which is not the same as the previous number generated		
 unsigned char generateRnd(unsigned int index){
+	
 	unsigned char rndnumber = 0;
+	
 	if(index == 0) rndnumber = rand()%MAX_RANDOM_NUMBER-1;
 	else{
-		while(rndnumber == 0){
-			rndnumber = rand()%MAX_RANDOM_NUMBER-1;
-		}
 		while(rndnumber == sequence[index-1]){
 			rndnumber = rand()%MAX_RANDOM_NUMBER-1;
 		}	
@@ -215,7 +213,8 @@ void createSequence(){
 	}	
 }
 
-// show the sequence array until index
+// show the sequence array until index NOT INCLUDED
+// Por ejemplo , showSequece(3) -> [0][1][2]
 void showSequence(unsigned int index){
 	LATA = 10;
 	Delay10KTCYx(150);
@@ -226,11 +225,10 @@ void showSequence(unsigned int index){
 	}
 	
 	else{	
-		for(i=0 ;i < index ;i++ ){
+		for(i=0 ;i < index+1 ;i++ ){
 			//less or equal cause in the first iteration we do showSequence(0);
 			LATA = sequence[i];
 			Delay10KTCYx(100);
-			i++;
 		}
 	}
 	LATA = 11;
@@ -242,7 +240,9 @@ void showSequence(unsigned int index){
 
 // check the sequence array until index
 unsigned char checkSequence(unsigned int index){
+	
 	unsigned char err = 0;
+	
 	unsigned char n = 0;   // variable to traverse the array
 	if(index ==0){
 		key = 0xFF;		
@@ -258,14 +258,15 @@ unsigned char checkSequence(unsigned int index){
 		}
 	}
 	else{	
-		for(n=0 ;n < index-1 ;n++ ){ // Por toda la sequencia que esta llena
+		for(n=0 ;n < index+1 ;n++ ){ // Por toda la sequencia que esta llena
 			key = 0xFF;		
 			while(key == 0xFF){
 				key = KeyDebounced();
 			}	
 			if(key != sequence[n]){
+				err++;
 				showNumber(err);
-				return 1;
+
 			}	
 			else {
 				printNumber(sequence[n]);
