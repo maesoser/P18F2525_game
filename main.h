@@ -1,6 +1,7 @@
 #include <p18f2525.h>
 #include <delays.h>
 #include <stdlib.h>
+#include <timers.h>
 
 #pragma config OSC = HS
 #pragma config WDT = OFF
@@ -8,14 +9,15 @@
 
 //#define DEBUG
 
-#define MAX_SEQ 100
-#define MAX_ERRORS 3
-#define MAX_RANDOM_NUMBER 9
+#define MAX_SEQ 5 //length of the sequence
+#define MAX_ERROR 3 //maximum number of errors
+#define MAX_RANDOM_NUMBER 9 // max range of random number
+
 #define TRUE 1
 #define FALSE 0
 #define EMPTY_LED 15
 
-#define DEBOUNCE_TIMEOUT 10
+#define DEBOUNCE_TIMEOUT 10 //time of debouncing
 #define GAME_TIMEOUT 30
 #define TEST_TIME 40
 

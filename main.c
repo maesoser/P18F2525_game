@@ -1,3 +1,4 @@
+
 #include "main.h"
  
 #pragma code
@@ -27,7 +28,7 @@ void main(void){
 	//showSequence(MAX_SEQ);
 	while(TRUE){
 		if(pos == MAX_SEQ ) win(); // Si ha alcanzado el numero de la serie -> WIN
-		if(error > MAX_ERROR) lose();		// Si ha alcanzado el numero de fallos -> LOSE
+		if(error == MAX_ERROR) lose();		// Si ha alcanzado el numero de fallos -> LOSE
 		else{		// Si no, sigue jugando
 			showSequence(pos);
 			error = error + checkSequence(pos);
@@ -250,7 +251,7 @@ unsigned char checkSequence(unsigned int index){
 			key = KeyDebounced();
 		}	
 		if(key != sequence[0]){
-			showNumber(err);
+			showNumber(error +1);
 			return 1;
 		}	
 		else {
@@ -264,8 +265,8 @@ unsigned char checkSequence(unsigned int index){
 				key = KeyDebounced();
 			}	
 			if(key != sequence[n]){
-				err++;
-				showNumber(err);
+				showNumber(error +1);
+				return 1;
 
 			}	
 			else {
@@ -274,7 +275,7 @@ unsigned char checkSequence(unsigned int index){
 				
 		}
 	}
-	return err;
+	return 0;
 }	
 	
 /*
