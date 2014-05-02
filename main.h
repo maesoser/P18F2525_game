@@ -45,3 +45,4 @@ void printNumber(unsigned char number);
 unsigned char generateRnd(unsigned int index);
 void setSeed(void);
 
+unsigned char randByTime(void);

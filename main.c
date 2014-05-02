@@ -4,6 +4,7 @@
 #pragma code
 
 const rom unsigned char encode[4] = { 0x01,0x02,0x04,0x08};   //  Type of inputs we could receive
+const rom unsigned char encodeRows[4] = {0b00000001,0b00001000,0b00010000,0b00100000};
 const rom unsigned char keyboard[4][4] = {
 {1,2,3,12},
 {4,5,6,13},
@@ -93,10 +94,10 @@ unsigned char ScanColumn(){
 		unsigned char column = 0xFF; // column = 11111111
 		unsigned char input;
 		//								 76543210
-		TRISC = TRISC & 0xF0; // TRISC = XXXX0000 Rows as ouputs
+		TRISC = TRISC & 0b11000110; // TRISC = XX000XX0 Rows as ouputs
 		TRISB = TRISB | 0x0F; // TRISB = XXXX1111 Columns as inputs
 		
-		PORTC = PORTC | 0x0F; // PORTC = XXXX1111 Turn on the rows
+		PORTC = PORTC | 0b00111001; // PORTC = XXXX1111 Turn on the rows
 		input = PORTB & 0x0F; // input = 0000XXXX Capture 0:3 Values
 	
 		for(i=0;i<4; i++) if (encode[i]==input) column = i;
@@ -111,13 +112,13 @@ unsigned char ScanRow(){
 	unsigned char row = 0xFF;
 	unsigned char input;
 
-	TRISC = TRISC | 0x0F;	// TRISC = XXXX1111 Rows as inputs
+	TRISC = TRISC | 0b00111001;	// TRISC = XX111XX1 Rows as inputs
 	TRISB = TRISB & 0xF0;	// TRISB = XXXX0000 Columns as outputs
 
-	PORTB = PORTB | 0x0F;	// PORTC = XXXX1111 Turn on the rows
-	input = PORTC & 0x0F;	// input = 0000XXXX Capture only the 0:3 values
+	PORTB = PORTB | 0x0F;	// PORTB = XXXX1111 Turn on the rows
+	input = PORTC & 0b00111001;	// input = 00XXX00X Capture only the values connected to the rows
 	
-	for(i=0; i<4; i++) if(encode[i] == input) row=i;
+	for(i=0; i<4; i++) if(encodeRows[i] == input) row=i;
 	return row; // row is the number of the row
 	
 }
@@ -277,7 +278,8 @@ unsigned char checkSequence(unsigned int index){
 	}
 	return 0;
 }	
-	
+unsigned char randByTime(){
+}	
 /*
 void beep(unsigned char note){
 	//   DutyCycle = 4 * (1/8*10^6) * 16 * (scaling value + 1)
