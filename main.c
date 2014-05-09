@@ -1,10 +1,43 @@
+/*
+		|1 MCLR	PGC 28|	->		       	A1 |1 B   16| 5V
+ BCD 	|2 A0	PGD 27|	->			    A2 |2 C	  15| F			G F X A B
+ BCD	|3 A1	 B5 26|			       	   |3	  14| G			|		|	
+ BCD	|4 A2	 B4 25|	       			   |4	  13| A			|		|
+ BCD	|5 A3	 B3 24|	Col3			   |5 RBI 12| B			|		|
+		|6 A4	 B2 23| Col2			A3 |6 D	  11| C   		E D X C 0
+		|7 A5	 B1 22| Col1			A0 |7 A	  10| D
+		|8 GND	 B0 21| Col0		    GND|8 GND  9| E			* 0 means BD			
+OSC		|9 		 5V 20|	5v										* X means GND
+OSC		|10		    19| GND
+		|11 C0	 RX 18| Rx
+row1	|12 C1	 TX 17| Tx
+Speaker	|13 C2	 C5 16|row4
+row2	|14 C3	 C4 15|row3
+*/
+
+/* REMEMBER!!
+Z & 1100 = XX00
+Z | 1100 = 11XX
+*/
+
+/* 
+ TRISA -> BCD
+ TRISC = ROWS
+ TRISB = COLUMNS
+
+*/
 
 #include "main.h"
  
 #pragma code
 
+const rom unsigned int melody[6] = { NOTE_C4, NOTE_G3, NOTE_A3, NOTE_G3, NOTE_B3, NOTE_C4};
+const rom unsigned int loseSong[10] = {NOTE_B4,0,NOTE_B4,0,NOTE_B4,NOTE_E4,NOTE_D3,NOTE_B4,NOTE_E4,NOTE_D3};
+const rom unsigned int winSong[10] = {NOTE_GS2,0,NOTE_GS2,0,NOTE_GS2,NOTE_GS3,NOTE_GS4,NOTE_GS3,NOTE_G3,NOTE_GS2};
+const rom unsigned int keybsound[10] = {400,500,700,740,900,1000,1200,1500,2489,2794};
+
 const rom unsigned char encode[4] = { 0x01,0x02,0x04,0x08};   //  Type of inputs we could receive
-const rom unsigned char encodeRows[4] = {0b00000001,0b00001000,0b00010000,0b00100000};
+const rom unsigned char encodeRows[4] = {0b00000010,0b00001000,0b00010000,0b00100000};
 const rom unsigned char keyboard[4][4] = {
 {1,2,3,12},
 {4,5,6,13},
@@ -42,36 +75,53 @@ void main(void){
 void setup(){
 		
 	ADCON1 = 0x0F; // 00001111 Make all pins digital in PORTA and PORTB.
-    
 	/*
 	TRISB and TRISC are configured each time we run ScanKeypad.
 	The pull ups of INTCON2 are not configured cause we dont want pull ups, we use pull downs
 	*/
-
 	LATA = 0x00;
 	TRISA = 0x00;	
-	
+    
 	#ifdef DEBUG
 	test(9);
+	for(i=0; i<10; i++){
+		LATA = i;
+		play(keybsound[i],SONG_TIME_SHORT);
+	}
+
 	#endif
 	
 	setSeed(); // Now we obtain the difficulty and the seed for the random generator
 	createSequence(); //Fill the sequence with random numbers
 	
 	#ifdef DEBUG
-	showNumber(1);
-	showNumber(2);
-	showNumber(3);
-	showSequence(99);
+	showSequence(MAX_SEQ-1);
 	#endif
+
+	
+	for(i=0; i < 7; i++){
+		play(melody[i], SONG_TIME_SHORT);
+	}
+	for(i=0; i < 7; i++){
+		play(melody[i], SONG_TIME_SHORT);
+	}
+	for(i=0; i < 7; i++){
+		play(melody[i], SONG_TIME_SHORT);
+	}
 }
 
 void win(){
-	while(TRUE) test(2);
+		for(i=0; i < 10; i++){
+		play(winSong[i], SONG_TIME_SHORT);
+	}
+	main();
 }
 
 void lose(){		
-	while(TRUE) test(3);
+		for(i=0; i < 10; i++){
+		play(loseSong[i], SONG_TIME_SHORT);
+	}
+	main();
 }	
 
 // show a regresive sequence starting at "start"	
@@ -87,17 +137,16 @@ void test(unsigned char start){
 
 }
 
-//Scan a Column
 unsigned char ScanColumn(){
 		
 		unsigned char i;
 		unsigned char column = 0xFF; // column = 11111111
 		unsigned char input;
 		//								 76543210
-		TRISC = TRISC & 0b11000110; // TRISC = XX000XX0 Rows as ouputs
+		TRISC = TRISC & 0b11000101; // TRISC = XX000X0X Rows as ouputs
 		TRISB = TRISB | 0x0F; // TRISB = XXXX1111 Columns as inputs
 		
-		PORTC = PORTC | 0b00111001; // PORTC = XXXX1111 Turn on the rows
+		PORTC = PORTC | 0b00111010; // PORTC = XX111X1X Turn on the rows
 		input = PORTB & 0x0F; // input = 0000XXXX Capture 0:3 Values
 	
 		for(i=0;i<4; i++) if (encode[i]==input) column = i;
@@ -112,11 +161,11 @@ unsigned char ScanRow(){
 	unsigned char row = 0xFF;
 	unsigned char input;
 
-	TRISC = TRISC | 0b00111001;	// TRISC = XX111XX1 Rows as inputs
+	TRISC = TRISC | 0b00111010;	// TRISC = XX111X1X Rows as inputs
 	TRISB = TRISB & 0xF0;	// TRISB = XXXX0000 Columns as outputs
 
 	PORTB = PORTB | 0x0F;	// PORTB = XXXX1111 Turn on the rows
-	input = PORTC & 0b00111001;	// input = 00XXX00X Capture only the values connected to the rows
+	input = PORTC & 0b00111010;	// input = 00XXX0X0 Capture only the values connected to the rows
 	
 	for(i=0; i<4; i++) if(encodeRows[i] == input) row=i;
 	return row; // row is the number of the row
@@ -141,6 +190,7 @@ unsigned char KeyDebounced(){
 	unsigned char key = ScanKeypad();
 	Delay10KTCYx(DEBOUNCE_TIMEOUT);
 	if (key==ScanKeypad()) value = key;
+	
 	return value;
 }
 
@@ -151,7 +201,7 @@ unsigned char generateRnd(unsigned int index){
 	
 	if(index == 0) rndnumber = rand()%MAX_RANDOM_NUMBER-1;
 	else{
-		while(rndnumber == sequence[index-1]){
+		while(rndnumber == sequence[index-1] || rndnumber < MIN_RANDOM_NUMBER || rndnumber > MAX_RANDOM_NUMBER ){
 			rndnumber = rand()%MAX_RANDOM_NUMBER-1;
 		}	
 	}
@@ -177,12 +227,15 @@ void setSeed(){
 
 // Prints a blinking number
 void printNumber(unsigned char number){
-	for(i=0; i<3;i++){
+	LATA = number;
+	play(keybsound[number],SONG_TIME_SHORT*2);
+	/*for(i=0; i<3;i++){
 		LATA = number;
-		Delay10KTCYx(30);
+		play(keybsound[number],2);
+		//Delay10KTCYx(30);
 		LATA = 15;
 		Delay10KTCYx(30);	
-	}
+	}*/
 	LATA = 15;
 }
 
@@ -212,6 +265,7 @@ void showNumber(unsigned char number){
 void createSequence(){
 	for(i=0; i< MAX_SEQ; i++){
 		sequence[i] = generateRnd(i);
+		//sequence[i] = randByTime(i);
 	}	
 }
 
@@ -220,17 +274,18 @@ void createSequence(){
 void showSequence(unsigned int index){
 	LATA = 10;
 	Delay10KTCYx(150);
-	
 	if(index == 0){
 		LATA = sequence[0];
-		Delay10KTCYx(100);	
+		play(keybsound[sequence[0]],SONG_TIME_LARGE);
+		//Delay10KTCYx(100);	
 	}
 	
 	else{	
 		for(i=0 ;i < index+1 ;i++ ){
 			//less or equal cause in the first iteration we do showSequence(0);
 			LATA = sequence[i];
-			Delay10KTCYx(100);
+			play(keybsound[sequence[i]],SONG_TIME_LARGE);
+			//Delay10KTCYx(100);
 		}
 	}
 	LATA = 11;
@@ -242,16 +297,20 @@ void showSequence(unsigned int index){
 
 // check the sequence array until index
 unsigned char checkSequence(unsigned int index){
-	
 	unsigned char err = 0;
-	
 	unsigned char n = 0;   // variable to traverse the array
+	unsigned char diff = 0;
+	if(index > 3) diff =1;
+	if(index > 5) diff =2;
+	if(index > 3) diff =3;
 	if(index ==0){
+		unsigned int t = 0;
 		key = 0xFF;		
-		while(key == 0xFF){
+		while(key == 0xFF){	 
 			key = KeyDebounced();
 		}	
 		if(key != sequence[0]){
+			play(NOTE_B3,SONG_TIME_SHORT-diff);
 			showNumber(error +1);
 			return 1;
 		}	
@@ -261,15 +320,37 @@ unsigned char checkSequence(unsigned int index){
 	}
 	else{	
 		for(n=0 ;n < index+1 ;n++ ){ // Por toda la sequencia que esta llena
-			key = 0xFF;		
-			while(key == 0xFF){
+			key = 0xFF;
+			OpenTimer0(TIMER_INT_OFF & T0_16BIT & T0_SOURCE_INT & T0_PS_1_128);
+			WriteTimer0(0x48E5);	
+			while(TRUE){
+	 			if( key != 0xFF){
+		 			break;
+		 		}
+	 			if(INTCONbits.TMR0IF==1){
+		 			 break;
+		 		}	 
 				key = KeyDebounced();
-			}	
+			}
+				
 			if(key != sequence[n]){
+				INTCONbits.TMR0IF=0;
+				play(NOTE_B3,SONG_TIME_SHORT);
 				showNumber(error +1);
+				CloseTimer0();
 				return 1;
 
-			}	
+			}
+			if(INTCONbits.TMR0IF==1){
+				
+				INTCONbits.TMR0IF=0; 
+				play(NOTE_B3,SONG_TIME_SHORT);
+				showNumber(error +1);
+				CloseTimer0();
+				return 1;
+
+			}
+				
 			else {
 				printNumber(sequence[n]);
 			}		
@@ -277,17 +358,61 @@ unsigned char checkSequence(unsigned int index){
 		}
 	}
 	return 0;
-}	
-unsigned char randByTime(){
-}	
-/*
-void beep(unsigned char note){
-	//   DutyCycle = 4 * (1/8*10^6) * 16 * (scaling value + 1)
-	// This is the length of time that the pulse is held high
-	
-	unsigned int dutyCycle=0;
-	dutyCycle=note;
-	OpenPWM1(DEFAULT_TIME);
-	SetDCPWM1(dutyCycle);	
 }
-*/
+	
+void delayTime(unsigned char t){
+	
+	/*
+	Tu = 4*Tclk  is 500 nsec per cycle
+	we have to measure 25.000.000 nsec which is 50000 instruction
+	500.000 /8 (preescaled) is 62.500 , which is inside the t1 maximum (65.536)
+	but for some strange reason it measures 1/2 seconds
+	*/
+	
+	unsigned int aux = 0;
+	OpenTimer3(TIMER_INT_OFF & T3_16BIT_RW & T3_SOURCE_INT & T3_PS_1_8);
+	WriteTimer3(0);
+	while(aux != t){
+		if((unsigned int) ReadTimer3() == 15625){
+			WriteTimer3(0);
+			aux ++;	
+		}
+	}
+	CloseTimer3();
+/*	unsigned int aux = 0;
+	OpenTimer3(TIMER_INT_OFF & T3_16BIT_RW & T3_SOURCE_INT & T3_PS_1_4);
+	WriteTimer3(65536-50000);
+	PIR2bits.TMR3IF==0;
+	while(aux != t*10){
+		if(PIR2bits.TMR3IF==1){
+			PIR2bits.TMR3IF==0;
+			aux++;
+			WriteTimer3(65536-50000);
+		
+		}
+	}
+	CloseTimer3();	*/
+}
+
+void StartTone(unsigned char note, unsigned char dc){
+	OpenTimer2(TIMER_INT_OFF & T2_PS_1_16 & T2_POST_1_1);
+		OpenPWM1(note);
+		//freq = (note+1)*4*(1/8000000)*16
+		SetDCPWM1(dc);
+}
+
+void StopTone(){
+	ClosePWM1();
+	CloseTimer2();
+}
+void play_music(unsigned char note, unsigned char dc,unsigned char time){
+	StartTone(note,dc);
+	delayTime(time);
+	StopTone();
+}					
+void play(unsigned char note,unsigned char time){
+		StartTone(note,220);
+		delayTime(time);
+		StopTone();
+}
+
