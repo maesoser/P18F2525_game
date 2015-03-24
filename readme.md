@@ -44,3 +44,7 @@ The game will have an start mode to be determined by the programmer (pressing a 
 
 # Pinout
 ![Image](https://raw.githubusercontent.com/maesoser/P18F2525_game/master/pinout.png)
+
+## (Maybe this is easier to understand...)
+
+![Fritzing](https://raw.githubusercontent.com/maesoser/P18F2525_game/master/project.png)
